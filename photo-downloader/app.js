@@ -7,11 +7,11 @@ const uuid = require('uuid/v1');
 AWS.config.update({region:'us-west-2'});
 const s3 = new AWS.S3();
 
-let amqpConnnection;
+let amqpConnection;
 
 AMQP.connect('amqp://localhost')
     .then(conn => {
-        amqpConnnection = conn;
+        amqpConnection = conn;
         return conn.createChannel();
     }).then(async ch => {
         await ch.assertExchange('insta-photos', 'fanout', {durable: true});
@@ -53,6 +53,7 @@ async function downloadToS3(url) {
     
     const name = uuid() + '.' + mime.extension(type);
     await saveToS3(name, data, type);
+    console.log('Saved to S3: ' + url);
     
     return name;
 }
@@ -76,7 +77,7 @@ async function saveToS3(name, data, type) {
 }
 
 async function publish(payload) {
-    const ch = await amqpConnnection.createChannel();
+    const ch = await amqpConnection.createChannel();
     await ch.assertExchange('s3-photos', 'fanout', {durable: true});
     await ch.publish('s3-photos', '', Buffer.from(JSON.stringify(payload), 'utf8'));
     console.log('Published: ' + JSON.stringify(payload));
