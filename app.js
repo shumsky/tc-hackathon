@@ -1,5 +1,11 @@
 const AMQP = require('amqplib');
+const AWS = require('aws-sdk');
 const request = require('request');
+const mime = require('mime-types')
+const uuid = require('uuid/v1');
+
+AWS.config.update({region:'us-west-2'});
+const s3 = new AWS.S3();
 
 AMQP.connect('amqp://localhost')
     .then(conn => {
@@ -13,7 +19,7 @@ AMQP.connect('amqp://localhost')
                 const payload = JSON.parse(msg.content.toString());
                 await processMessage(payload);
             } catch (e) {
-                console.log('Failed to process message: ' + e);
+                console.error(e, 'Failed to process message');
             } finally {
                 ch.ack(msg);
             }
@@ -21,31 +27,48 @@ AMQP.connect('amqp://localhost')
     });
 
 async function processMessage(payload) {
-    const photos = await Promise.all(payload.photoLinks.map(downloadImage));
-    const s3Links = await Promise.all(photos.map(saveToS3));
+    const s3Keys = await Promise.all(payload.photoLinks.map(downloadToS3));
     publish({
         userId: payload.userId,
-        s3Links
+        s3Keys
     });
 }
 
-async function downloadImage(url) {
-    return new Promise((resolve, reject) => {
-        request(url, (err, res) => {
+async function downloadToS3(url) {
+    const [data, type] = await new Promise((resolve, reject) => {
+        request({url, encoding: null}, (err, res) => {
             if (err) {
                 return reject(new Error(err));
             }
             if (res.statusCode !== 200) {
                 return reject(new Error('Invalid status code: ' + res.statusCode));
             }
-            resolve(Buffer.from(res.body, 'utf8'));
+            resolve([res.body, res.headers['content-type']]);
         });
     });
+    
+    const name = uuid() + '.' + mime.extension(type);
+    await saveToS3(name, data, type);
+    
+    return name;
 }
 
-async function saveToS3(name, imageData) {
-    console.log('Saving: ' + imageData.toString());
-    return 's3Name';
+async function saveToS3(name, data, type) {
+    const params = {
+        Body: data,
+        Bucket: 'tc-hackathon',
+        Key: name,
+        ACL: 'public-read',
+        ContentType: type
+    };
+    return new Promise((resolve, reject) => {
+        s3.upload(params, (err, data) => {
+            if (err) {
+                return reject(err);
+            }
+            resolve();
+        });
+    });
 }
 
 function publish(payload) {
