@@ -35,6 +35,14 @@
 .submit-box {
     padding: 0 10px 0 10px;
 }
+.submit-box .ibox-content {
+ min-height: 625px;
+}
+
+.agile-list li.first {
+    background-color: #f3f6fb
+}
+
 
 .sortable-list {
     padding: 1px 0;
