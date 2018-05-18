@@ -7,8 +7,11 @@ const uuid = require('uuid/v1');
 AWS.config.update({region:'us-west-2'});
 const s3 = new AWS.S3();
 
+let amqpConnnection;
+
 AMQP.connect('amqp://localhost')
     .then(conn => {
+        amqpConnnection = conn;
         return conn.createChannel();
     }).then(async ch => {
         await ch.assertExchange('insta-photos', 'fanout', {durable: true});
@@ -16,6 +19,7 @@ AMQP.connect('amqp://localhost')
         await ch.bindQueue('insta-photos:q', 'insta-photos');
         ch.consume('insta-photos:q', async msg => {
             try {
+                console.log('Received: ' + msg.content.toString());
                 const payload = JSON.parse(msg.content.toString());
                 await processMessage(payload);
             } catch (e) {
@@ -28,7 +32,7 @@ AMQP.connect('amqp://localhost')
 
 async function processMessage(payload) {
     const s3Keys = await Promise.all(payload.photoLinks.map(downloadToS3));
-    publish({
+    await publish({
         userId: payload.userId,
         s3Keys
     });
@@ -71,6 +75,9 @@ async function saveToS3(name, data, type) {
     });
 }
 
-function publish(payload) {
-    console.log('publish: ' + JSON.stringify(payload));
+async function publish(payload) {
+    const ch = await amqpConnnection.createChannel();
+    await ch.assertExchange('s3-photos', 'fanout', {durable: true});
+    await ch.publish('s3-photos', '', Buffer.from(JSON.stringify(payload), 'utf8'));
+    console.log('Published: ' + JSON.stringify(payload));
 }
