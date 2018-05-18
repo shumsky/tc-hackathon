@@ -1,0 +1,41 @@
+.my-top {
+    /*background-image: url('../img/top1.png');*/
+    /*background-size: 1436px 157px;*/
+    height: 100px;
+    /*width: 100%;*/
+}
+
+.my-top img {
+    display: block;
+    margin-left: -30px;
+    margin-right: auto;
+}
+
+.container {
+    width: 1040px;
+}
+
+.vote-photos {
+    padding-bottom: 10px;
+}
+
+.vote-item {
+    font-size: 18px;
+}
+
+.vote-info {
+    color: black;
+    font-size: 12px;
+}
+
+.vote-info .insta {
+    margin-right: 10px;
+}
+
+.submit-box {
+    padding: 0 10px 0 10px;
+}
+
+.sortable-list {
+    padding: 1px 0;
+}
