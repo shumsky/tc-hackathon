@@ -24,7 +24,7 @@ public class MessageListener {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-    @RabbitListener(queues = "queue-confirm-publish")
+    @RabbitListener(queues = "fetch-photos:q")
     public void receive(byte[] msg) throws Exception {
 
         JsonNode message = objectMapper.readTree(msg);
@@ -43,11 +43,11 @@ public class MessageListener {
 
         ResponseEntity<JsonNode> responseData = requestInstagram(headers, url, true);
 
-        if (Integer.parseInt(responseData.getStatusCode().toString()) == 200){
+        if (Integer.parseInt(responseData.getStatusCode().toString()) == 200) {
 
             // Send instagram response to rabbit_mq
             rabbitTemplate.convertAndSend(
-                    "exchange-instagram-data",
+                    "insta-photos",
                     "",
                     parseResponse(responseData, message.get("userId").textValue()));
         }
@@ -72,19 +72,19 @@ public class MessageListener {
         }
     }
 
-    private String parseResponse(ResponseEntity<JsonNode> responseData, String userId){
+    private String parseResponse(ResponseEntity<JsonNode> responseData, String userId) {
 
         ArrayNode photoLinks = objectMapper.createArrayNode();
         ObjectNode payload = objectMapper.createObjectNode();
 
         payload.put("userId", userId);
 
-        for (Iterator<JsonNode> it = responseData.getBody().get("data").iterator(); it.hasNext();){
+        for (Iterator<JsonNode> it = responseData.getBody().get("data").iterator(); it.hasNext(); ) {
             JsonNode element = it.next();
-            photoLinks.add(element.get("images").get("thumbnail").get("url").asText());
+            photoLinks.add(element.get("images").get("standard_resolution").get("url").asText());
         }
 
-        payload.put("photoLinks", photoLinks);
+        payload.set("photoLinks", photoLinks);
         return payload.toString();
     }
 }
