@@ -10,8 +10,8 @@ let amqpConnection;
 const categories = {
   bedroomOrApartment: ['Bed', 'Furniture', 'Bedroom', 'Indoors', 'Room'],
   poolAndSpa: ['Pool', 'Water', 'Hotel', 'Resort', 'Swimming Pool'],
-  outdoors: ['Beach', 'Coast', 'Ocean', 'Sea', 'Water', 'Outdoors'],
-  foodAndDrink: ['Dinner', 'Food', 'Meal', 'Supper', 'Glass', 'Cutlery']
+  outdoors: ['Beach', 'Coast', 'Ocean', 'Sea', 'Water', 'Outdoors', 'Architecture', 'Building', 'Palace', 'People', 'Castle', 'Housing'],
+  foodAndDrink: ['Dinner', 'Food', 'Meal', 'Supper', 'Glass', 'Cutlery', 'Bowl']
 }
 
 AMQP.connect('amqp://localhost').then(async conn => {
@@ -34,14 +34,20 @@ AMQP.connect('amqp://localhost').then(async conn => {
 });
 
 async function processMessage(payload) {
-    const categorizedPhotos = {};
+    const categorizedPhotos = {
+      other: []
+    };
     Object.keys(categories).forEach((categoryName) => categorizedPhotos[categoryName] = []);
     
     for (let photoKey of payload.s3Keys) {
-      const photoLabels = await getLabels(photoKey);
-      const photoCategoryName = categorize(photoLabels);
-      categorizedPhotos[photoCategoryName].push(`https://tc-hackathon.s3-us-west-2.amazonaws.com/${photoKey}`);
-      console.log('Categorized image: ' + photoKey);
+      try {
+        const photoLabels = await getLabels(photoKey);
+        const photoCategoryName = categorize(photoLabels) || 'other';
+        categorizedPhotos[photoCategoryName].push(`https://tc-hackathon.s3-us-west-2.amazonaws.com/${photoKey}`);
+        console.log(`Categorized image: ${photoKey}. Labels: ${photoLabels}. Category: ${photoCategoryName}`);  
+      } catch (e) {
+        console.error(e, 'Failed to categorize image: ' + photoKey);
+      }
     }
     await publish({
       userId: payload.userId,
