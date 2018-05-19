@@ -3,6 +3,7 @@ const AWS = require('aws-sdk');
 const request = require('request');
 const mime = require('mime-types')
 const uuid = require('uuid/v1');
+const crypto = require('crypto');
 
 AWS.config.update({region:'us-west-2'});
 const s3 = new AWS.S3();
@@ -51,7 +52,7 @@ async function downloadToS3(url) {
         });
     });
     
-    const name = uuid() + '.' + mime.extension(type);
+    const name = crypto.createHash('sha1').update(url).digest('hex') + '.' + mime.extension(type);
     await saveToS3(name, data, type);
     console.log('Saved to S3: ' + url);
     

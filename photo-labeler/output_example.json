@@ -1,0 +1,21 @@
+{
+    "userId": "dmytromy",
+    "photos": {
+        "other": [
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/533474f5c2ae7fda1240bb89634109b3e6cfe563.jpeg",
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/d3639778516d3954c360e2f94aca6eed2f6433ba.jpeg",
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/3803ed4ad3cc0801bb7508b45b40b623e5fab883.jpeg",
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/35f96df55fd89d9b1949093e488e5b770ebf5de6.jpeg"
+        ],
+        "bedroomOrApartment": [],
+        "poolAndSpa": [],
+        "outdoors": [
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/064e01f05b13f4df7450ac9f8e6b710bc0b5f94f.jpeg",
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/451a3434ff0a3d21e7a9ca92cd2504c6ef21b78a.jpeg",
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/e7330bb28134c74d24a32ebd2220220d6de178cb.jpeg"
+        ],
+        "foodAndDrink": [
+            "https://tc-hackathon.s3-us-west-2.amazonaws.com/2e5f5d87528edcd7ddc0a4171a0ef38e8094a477.jpeg"
+        ]
+    }
+}
